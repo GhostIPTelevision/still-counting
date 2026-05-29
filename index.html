@@ -257,6 +257,114 @@
       font-style: italic;
     }
 
+    /* ── Changelog ── */
+    .changelog-section {
+      max-width: 700px;
+      margin: 72px auto 0;
+    }
+
+    .changelog-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .changelog-heading-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .changelog-heading-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .changelog-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .log-entry {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 0 20px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: start;
+    }
+
+    .log-entry:first-child { border-top: 1px solid var(--border); }
+
+    .log-date {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      padding-top: 3px;
+    }
+
+    .log-body {}
+
+    .log-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+      display: block;
+    }
+
+    .log-change {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .log-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 2px;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .log-badge.safe    { background: #1a3d2b; color: var(--safe); }
+    .log-badge.lost    { background: #3d1a22; color: #e8b0ba; }
+    .log-badge.pending { background: #251f3d; color: #b0a8e8; }
+    .log-badge.added   { background: #1a2233; color: var(--text-dim); }
+
+    .log-arrow {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .log-note {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .changelog-empty {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-style: italic;
+      text-align: center;
+      padding: 20px 0;
+    }
+
     footer {
       text-align: center;
       margin-top: 72px;
@@ -345,6 +453,14 @@
 
 </div>
 
+<section class="changelog-section" id="changelog-section">
+  <div class="changelog-heading">
+    <span class="changelog-heading-text">Status Change Log</span>
+    <span class="changelog-heading-line"></span>
+  </div>
+  <ul class="changelog-list" id="changelog-list"></ul>
+</section>
+
 <footer>
   <p>A tracker by <a href="#">Still Counting</a> · All cases covered publicly &amp; ethically</p>
 </footer>
@@ -368,6 +484,30 @@
       outcome: "pending",
       caseLabel: "Missing — Last seen May 20, 2026",
       date: "May 2026"
+    },
+
+  ];
+
+  // ============================================================
+  // CHANGELOG — Add an entry each time a status changes
+  // ============================================================
+  const changelog = [
+
+    // FORMAT:
+    // {
+    //   name: "Full Name",
+    //   from: "added" | "pending" | "safe" | "lost",  // "added" for first appearance
+    //   to: "pending" | "safe" | "lost",
+    //   date: "May 28, 2026",
+    //   note: "Optional note shown in italics"         // omit if not needed
+    // },
+
+    {
+      name: "Ayanna Renea",
+      from: "added",
+      to: "pending",
+      date: "May 28, 2026",
+      note: "Added to tracker — missing since May 20, 2026"
     },
 
   ];
@@ -479,7 +619,46 @@
       query ? `${total} result${total !== 1 ? "s" : ""} for "${this.value}"` : "";
   });
 
+  function renderChangelog() {
+    const list = document.getElementById("changelog-list");
+    list.innerHTML = "";
+
+    if (changelog.length === 0) {
+      list.innerHTML = '<li class="changelog-empty">No status changes logged yet.</li>';
+      return;
+    }
+
+    // Show newest first
+    const sorted = [...changelog].reverse();
+
+    sorted.forEach(entry => {
+      const li = document.createElement("li");
+      li.className = "log-entry";
+
+      const fromBadge = entry.from === "added"
+        ? `<span class="log-badge added">New</span>`
+        : `<span class="log-badge ${entry.from}">${entry.from}</span>`;
+
+      const toBadge = `<span class="log-badge ${entry.to}">${entry.to}</span>`;
+
+      li.innerHTML = `
+        <span class="log-date">${entry.date}</span>
+        <div class="log-body">
+          <span class="log-name">${entry.name}</span>
+          <span class="log-change">
+            ${fromBadge}
+            <span class="log-arrow">→</span>
+            ${toBadge}
+          </span>
+          ${entry.note ? `<span class="log-note">${entry.note}</span>` : ""}
+        </div>
+      `;
+      list.appendChild(li);
+    });
+  }
+
   render();
+  renderChangelog();
 </script>
 
 </body>
