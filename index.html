@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Still Counting</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f14;
+      --surface: #13161d;
+      --border: #1f2433;
+      --teal: #4a9b9b;
+      --amber: #c8924a;
+      --muted: #5a6070;
+      --text: #d6d8de;
+      --text-dim: #8b919e;
+      --safe: #4a9b6e;
+      --danger: #9b4a5a;
+      --pending: #7a6b9b;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'EB Garamond', Georgia, serif;
+      min-height: 100vh;
+      padding: 48px 24px 80px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    h1 em { color: var(--teal); font-style: italic; }
+
+    .subtitle {
+      font-size: 1.05rem;
+      color: var(--text-dim);
+      font-style: italic;
+      max-width: 520px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+
+    .totals {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .total-item { text-align: center; }
+
+    .total-number {
+      font-family: 'Space Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      display: block;
+    }
+
+    .total-label {
+      font-size: 0.78rem;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .total-item.safe .total-number  { color: var(--safe); }
+    .total-item.lost .total-number  { color: var(--danger); }
+    .total-item.pending .total-number { color: var(--pending); }
+
+    /* ── Search bar ── */
+    .search-wrap {
+      max-width: 480px;
+      margin: 32px auto 0;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 10px 16px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .search-wrap input::placeholder { color: var(--muted); }
+    .search-wrap input:focus { border-color: var(--teal); }
+
+    .search-status {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 8px;
+      min-height: 16px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px auto;
+      max-width: 700px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .column {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 28px 24px;
+    }
+
+    .column-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .column.safe .dot    { background: var(--safe); }
+    .column.lost .dot    { background: var(--danger); }
+    .column.pending .dot { background: var(--pending); }
+
+    .column-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .column-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    .entry-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .entry {
+      border-left: 2px solid var(--border);
+      padding-left: 14px;
+    }
+
+    .column.safe .entry    { border-color: #2a5c40; }
+    .column.lost .entry    { border-color: #5c2a36; }
+    .column.pending .entry { border-color: #3d3560; }
+
+    .entry-name {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .column.lost .entry-name { color: #e8b0ba; }
+
+    .entry-meta {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .entry-case {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      font-style: italic;
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* ── Show more ── */
+    .show-more-btn {
+      display: none;
+      width: 100%;
+      margin-top: 20px;
+      padding: 8px 0;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .show-more-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+    .empty-state {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-style: italic;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .no-results {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      padding: 20px 0;
+      font-style: italic;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 72px;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    footer a { color: var(--teal); text-decoration: none; }
+
+    .updated {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 8px;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">A living record · Updated as cases resolve</p>
+  <h1><em>Still</em> Counting</h1>
+  <p class="subtitle">Every case covered on this channel, tracked by outcome. Because the numbers matter — and so do the names.</p>
+
+  <div class="totals">
+    <div class="total-item safe">
+      <span class="total-number" id="count-safe">0</span>
+      <span class="total-label">Found Safe</span>
+    </div>
+    <div class="total-item lost">
+      <span class="total-number" id="count-lost">0</span>
+      <span class="total-label">Did Not Survive</span>
+    </div>
+    <div class="total-item pending">
+      <span class="total-number" id="count-pending">0</span>
+      <span class="total-label">Still Pending</span>
+    </div>
+  </div>
+
+  <p class="updated" id="last-updated"></p>
+
+  <div class="search-wrap">
+    <input type="text" id="search-input" placeholder="Search by name or case..." autocomplete="off" />
+    <p class="search-status" id="search-status"></p>
+  </div>
+</header>
+
+<hr class="divider"/>
+
+<div class="grid">
+
+  <div class="column safe">
+    <div class="column-header">
+      <span class="dot"></span>
+      <span class="column-title">Found Safe</span>
+      <span class="column-count" id="safe-count-label"></span>
+    </div>
+    <ul class="entry-list" id="list-safe"></ul>
+    <button class="show-more-btn" id="more-safe">Show more</button>
+  </div>
+
+  <div class="column lost">
+    <div class="column-header">
+      <span class="dot"></span>
+      <span class="column-title">Did Not Survive</span>
+      <span class="column-count" id="lost-count-label"></span>
+    </div>
+    <ul class="entry-list" id="list-lost"></ul>
+    <button class="show-more-btn" id="more-lost">Show more</button>
+  </div>
+
+  <div class="column pending">
+    <div class="column-header">
+      <span class="dot"></span>
+      <span class="column-title">Still Pending</span>
+      <span class="column-count" id="pending-count-label"></span>
+    </div>
+    <ul class="entry-list" id="list-pending"></ul>
+    <button class="show-more-btn" id="more-pending">Show more</button>
+  </div>
+
+</div>
+
+<footer>
+  <p>A tracker by <a href="#">Still Counting</a> · All cases covered publicly &amp; ethically</p>
+</footer>
+
+<script>
+  // ============================================================
+  // CASE DATA — Edit this section to add or update cases
+  // ============================================================
+  const cases = [
+
+    // FORMAT:
+    // {
+    //   name: "Full Name",
+    //   outcome: "safe" | "lost" | "pending",
+    //   caseLabel: "Short case description",
+    //   date: "Month Year"
+    // },
+
+    {
+      name: "Ayanna Renea",
+      outcome: "pending",
+      caseLabel: "Missing — Last seen May 20, 2026",
+      date: "May 2026"
+    },
+
+  ];
+  // ============================================================
+  // END OF EDITABLE SECTION
+  // ============================================================
+
+  const PAGE_SIZE = 10; // how many entries to show before "Show more"
+
+  const state = {
+    safe:    { shown: PAGE_SIZE, expanded: false },
+    lost:    { shown: PAGE_SIZE, expanded: false },
+    pending: { shown: PAGE_SIZE, expanded: false },
+  };
+
+  let query = "";
+
+  function normalize(str) {
+    return str.toLowerCase().replace(/\s+/g, " ").trim();
+  }
+
+  function matchesQuery(c) {
+    if (!query) return true;
+    return normalize(c.name).includes(query) ||
+           normalize(c.caseLabel || "").includes(query);
+  }
+
+  function buildEntry(c) {
+    const li = document.createElement("li");
+    li.className = "entry";
+    li.innerHTML = `
+      <span class="entry-name">${c.name}</span>
+      ${c.date      ? `<span class="entry-meta">${c.date}</span>` : ""}
+      ${c.caseLabel ? `<span class="entry-case">${c.caseLabel}</span>` : ""}
+    `;
+    return li;
+  }
+
+  function fillColumn(outcome) {
+    const list = document.getElementById(`list-${outcome}`);
+    const btn  = document.getElementById(`more-${outcome}`);
+    const countLabel = document.getElementById(`${outcome}-count-label`);
+
+    const all      = cases.filter(c => c.outcome === outcome);
+    const filtered = all.filter(matchesQuery);
+    const limit    = state[outcome].shown;
+    const slice    = filtered.slice(0, limit);
+
+    list.innerHTML = "";
+
+    if (filtered.length === 0) {
+      list.innerHTML = query
+        ? '<li class="no-results">No matches.</li>'
+        : '<li class="empty-state">No entries yet.</li>';
+      btn.style.display = "none";
+      countLabel.textContent = all.length;
+      return;
+    }
+
+    slice.forEach(c => list.appendChild(buildEntry(c)));
+
+    countLabel.textContent = all.length;
+
+    if (filtered.length > limit) {
+      btn.style.display = "block";
+      const remaining = filtered.length - limit;
+      btn.textContent = `Show ${Math.min(remaining, PAGE_SIZE)} more (${remaining} remaining)`;
+      btn.onclick = () => {
+        state[outcome].shown += PAGE_SIZE;
+        fillColumn(outcome);
+      };
+    } else {
+      btn.style.display = "none";
+    }
+  }
+
+  function render() {
+    const safe    = cases.filter(c => c.outcome === "safe").length;
+    const lost    = cases.filter(c => c.outcome === "lost").length;
+    const pending = cases.filter(c => c.outcome === "pending").length;
+
+    document.getElementById("count-safe").textContent    = safe;
+    document.getElementById("count-lost").textContent    = lost;
+    document.getElementById("count-pending").textContent = pending;
+
+    fillColumn("safe");
+    fillColumn("lost");
+    fillColumn("pending");
+
+    const now = new Date();
+    document.getElementById("last-updated").textContent =
+      "Last updated: " + now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  }
+
+  document.getElementById("search-input").addEventListener("input", function () {
+    query = normalize(this.value);
+
+    // Reset pagination when searching
+    state.safe.shown    = PAGE_SIZE;
+    state.lost.shown    = PAGE_SIZE;
+    state.pending.shown = PAGE_SIZE;
+
+    fillColumn("safe");
+    fillColumn("lost");
+    fillColumn("pending");
+
+    const total = cases.filter(matchesQuery).length;
+    document.getElementById("search-status").textContent =
+      query ? `${total} result${total !== 1 ? "s" : ""} for "${this.value}"` : "";
+  });
+
+  render();
+</script>
+
+</body>
+</html>
