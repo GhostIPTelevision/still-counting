@@ -220,6 +220,14 @@
       display: block;
     }
 
+    .entry-active-notice {
+      font-size: 0.78rem;
+      color: #9b8a4a;
+      margin-top: 6px;
+      display: block;
+      line-height: 1.5;
+    }
+
     /* ── Show more ── */
     .show-more-btn {
       display: none;
@@ -535,6 +543,8 @@
            normalize(c.caseLabel || "").includes(query);
   }
 
+  const ACTIVE_NOTICE = `This is an active case. If you have information, please contact your local authorities or call 911. Do not conduct independent investigations that could interfere with law enforcement.`;
+
   function buildEntry(c) {
     const li = document.createElement("li");
     li.className = "entry";
@@ -542,6 +552,7 @@
       <span class="entry-name">${c.name}</span>
       ${c.date      ? `<span class="entry-meta">${c.date}</span>` : ""}
       ${c.caseLabel ? `<span class="entry-case">${c.caseLabel}</span>` : ""}
+      ${c.outcome === "pending" ? `<span class="entry-active-notice">${ACTIVE_NOTICE}</span>` : ""}
     `;
     return li;
   }
